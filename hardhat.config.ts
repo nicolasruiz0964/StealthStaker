@@ -6,16 +6,19 @@ import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-gas-reporter";
 import type { HardhatUserConfig } from "hardhat/config";
-import { vars } from "hardhat/config";
+import * as dotenv from "dotenv";
 import "solidity-coverage";
 
 import "./tasks/accounts";
-import "./tasks/FHECounter";
+import "./tasks/tZama";
 
-// Run 'npx hardhat vars setup' to see the list of variables that need to be set
+dotenv.config();
 
-const MNEMONIC: string = vars.get("MNEMONIC", "test test test test test test test test test test test junk");
-const INFURA_API_KEY: string = vars.get("INFURA_API_KEY", "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
+const INFURA_API_KEY = process.env.INFURA_API_KEY ?? "";
+const PRIVATE_KEY = process.env.PRIVATE_KEY ?? "";
+
+const sharedAccounts = PRIVATE_KEY !== "" ? [PRIVATE_KEY] : undefined;
+const sharedUrl = INFURA_API_KEY !== "" ? `https://sepolia.infura.io/v3/${INFURA_API_KEY}` : undefined;
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -34,34 +37,23 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      accounts: {
-        mnemonic: MNEMONIC,
-      },
       chainId: 31337,
     },
     anvil: {
-      accounts: {
-        mnemonic: MNEMONIC,
-        path: "m/44'/60'/0'/0/",
-        count: 10,
-      },
       chainId: 31337,
       url: "http://localhost:8545",
     },
     sepolia: {
-      accounts: {
-        mnemonic: MNEMONIC,
-        path: "m/44'/60'/0'/0/",
-        count: 10,
-      },
       chainId: 11155111,
-      url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+      url: sharedUrl,
+      accounts: sharedAccounts,
     },
   },
   paths: {
     artifacts: "./artifacts",
     cache: "./cache",
     sources: "./contracts",
+    deployments: "./deployments",
     tests: "./test",
   },
   solidity: {
